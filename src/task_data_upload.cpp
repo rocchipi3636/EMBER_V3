@@ -8,7 +8,7 @@
 
 // #define USE_LAN to have the ESP32 join an existing Local Area Network or 
 // #undef USE_LAN to have the ESP32 act as an access point, forming its own LAN
-#define USE_LAN
+#undef USE_LAN
 
 // If joining an existing LAN, get certifications from a header file which you
 // should NOT push to a public repository of any kind

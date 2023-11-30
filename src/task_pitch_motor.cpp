@@ -13,8 +13,11 @@
 extern Share<bool> fireCentered;
 extern Share<bool> topLimitSwitch;
 extern Share<bool> bottomLimitSwitch;
+extern Share<bool> solenoidSwitched;
 
-u_int8_t motorPitchPin = 28;
+//Constants
+const uint8_t taskDelay = 100;
+const uint8_t motorPitchPin = 28;
 
 /** @brief Task
 *   @details Task
@@ -22,41 +25,59 @@ u_int8_t motorPitchPin = 28;
 */
 void pitch_motor (void* p_params)
 {
+    //State 0: Initialize
     Serial <<  "pitch_motor running";
     pinMode(motorPitchPin, OUTPUT);
-    u_int8_t dutyCycleYaw = 0;
+    bool localFireCentered = false;
+    bool localTopLimitSwitch = false;
+    bool localBottomLimitSwitch = false;
+    bool movingDown = true;
+    u_int8_t dutyCyclePitch = 200;
+    vTaskDelay(taskDelay);
     while(true)
     {
-        //Check if fire is present
-        firePresent.get(localFirePresent);
-        if(localFirePresent)
+        //Load shared variables to local
+        //fire is centered from motor yaw, note that centered implies present
+        fireCentered.get(localFireCentered);
+        //Variables for limit switch activation
+        topLimitSwitch.get(localTopLimitSwitch);
+        bottomLimitSwitch.get(localBottomLimitSwitch);
+        
+        if(!localFireCentered)
         {
-            //If fire is present, locate
-            firePosH.get(localFirePosH);
-            //adjust motor speed
-            dutyCycleYaw = 15*abs(localFirePosH);
-            //move motor
-            if(localFirePosH  > 2)
+            //State 1: Wait for fire to be centered
+            //If fire is not present, move motor up to reset position
+            if(!localTopLimitSwitch)
             {
-                //Move motor forwards
+                //Move motor up
             }
-            else if (localFirePosH < -2)
-            {
-                //Move motor backwards
-            }
-            else
-            {
-                //Fire is centered
-                fireCentered.put(true);
-                //Stop motor
-            }    
+            //Additionally reset direction of movement
+            movingDown = true;
+            //And ensure solenoid is off
+            solenoidSwitched.put(false);
+
         }
-        else
+        else if(movingDown)
         {
-            //If no fire, rotate slowly
-            dutyCycleYaw = 40;
-            //Move motor forwards
+            //State 2: Fire is centered, activate solenoid and move arm down
+            solenoidSwitched.put(true);
+            //Move motor down
+            if(localBottomLimitSwitch)
+            {
+                //if the bottom limit switch is triggered
+                movingDown = false;
+            }
         }
-        vTaskDelay(100);
+        else if(!movingDown)
+        {
+            //State 3: fire is centered, move arm up
+            //Move arm up
+            if(localTopLimitSwitch)
+            {
+                //if the top limit switch is triggered
+                movingDown = true;
+            }
+        }
+        vTaskDelay(taskDelay);
     }
 }

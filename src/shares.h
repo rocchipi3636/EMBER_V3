@@ -17,5 +17,11 @@ Share<int8_t> firePosH;
 Share<int8_t> firePosV;
 //Fire is centered, used by yaw motor and pitch motor
 Share<bool> fireCentered;
+//Limit Switch States, used by pitch motor and limit switch
+Share<bool> topLimitSwitch;
+Share<bool> bottomLimitSwitch;
+//Solenoid state, used by pitch motor and solenoid
+Share<bool> solenoidSwitched;
+
 
 #endif // _SHARES_

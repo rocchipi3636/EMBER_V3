@@ -9,8 +9,15 @@
 #include <taskshare.h>
 
 //Define Shared Variables
-//Details
-extern Share<bool> hide;
+extern Share<bool> topLimitSwitch;
+extern Share<bool> bottomLimitSwitch;
+
+//Constants
+const uint8_t taskDelay = 50;
+//Define GPIO pins for switches
+const uint8_t pinTLSW = 25;
+const uint8_t pinBLSW = 26;
+
 
 /** @brief Task
 *   @details Task
@@ -18,9 +25,16 @@ extern Share<bool> hide;
 */
 void limit_switch (void* p_params)
 {
+    //State 0: Initiliaze
+    pinMode(pinTLSW, INPUT);
+    pinMode(pinBLSW, INPUT);
     Serial <<  "limit_switch running";
+    vTaskDelay(taskDelay);
     while(true)
     {
-        vTaskDelay(100);
+        //State 1: Read Limit Switches and set shared variables
+        topLimitSwitch.put(digitalRead(pinTLSW));
+        bottomLimitSwitch.put(digitalRead(pinBLSW));
+        vTaskDelay(taskDelay);
     }
 }

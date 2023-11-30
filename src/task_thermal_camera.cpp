@@ -15,9 +15,12 @@
 //Details
 
 extern Share<bool> firePresent;
+extern Share<bool> fireCentered;
 extern Share<uint8_t> firePosH;
 extern Share<uint8_t> firePosV;
 
+//Constants
+uint8_t taskDelay = 5;
 
 /** @brief Task
 *   @details Task
@@ -41,6 +44,7 @@ void thermal_camera (void* p_params)
     int z = 0 ;
     int i = 0;
     int j = 0;
+    vTaskDelay(taskDelay);
     while(true)
     {
         if (mlx.getFrame(frame) != 0)
@@ -61,12 +65,38 @@ void thermal_camera (void* p_params)
                 }
             } 
         }
-        vTaskDelay(5);
+        vTaskDelay(taskDelay);
         if(z >= 30)
         {
             firePresent.put(true);
             firePosH.put(j-12);
             firePosV.put(j);
+        }
+        else
+        {
+            firePresent.put(false);
+            fireCentered.put(false);
         }    
     }
 }
+/*
+      char c = '&';
+      if (t < 20) c = ' ';
+      else if (t < 23) c = '.';
+      else if (t < 25) c = '-';
+      else if (t < 27) c = '*';
+      else if (t < 29) c = '+';
+      else if (t < 31) c = 'x';
+      else if (t < 33) c = '%';
+      else if (t < 35) c = '#';
+      else if (t < 37) c = 'X';
+      else if (t < 40) c = '1';
+      else if (t < 50) c = '2';
+      else if (t < 60) c = '3';
+      else if (t < 70) c = '4';
+      else if (t < 80) c = '5';
+      else if (t < 90) c = '6';
+      else if (t < 100) c = '7';
+      else if (t < 120) c = '8';
+      else if (t < 200 ) c = '9';
+*/

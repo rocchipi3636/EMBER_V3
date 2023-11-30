@@ -10,7 +10,11 @@
 
 //Define Shared Variables
 //Details
-extern Share<bool> hide;
+extern Share<bool> solenoidSwitched;
+
+//Constants
+const uint8_t taskDelay = 100;
+const uint8_t solenoidPin = 23;
 
 /** @brief Task
 *   @details Task
@@ -18,9 +22,23 @@ extern Share<bool> hide;
 */
 void solenoid (void* p_params)
 {
+    //State 0: Initialize
+    pinMode(solenoidPin, OUTPUT);
     Serial <<  "solenoid running";
+    bool localSolenoidSwitched = false;
+    vTaskDelay(taskDelay);
     while(true)
     {
-        vTaskDelay(100);
+        solenoidSwitched.get(localSolenoidSwitched);
+        if(!localSolenoidSwitched){
+            //State 1: Solenoid off
+            digitalWrite(solenoidPin, false);
+        }
+        else
+        {
+            //State 2: Solenoid on
+            digitalWrite(solenoidPin, true);
+        }
+        vTaskDelay(taskDelay);
     }
 }
