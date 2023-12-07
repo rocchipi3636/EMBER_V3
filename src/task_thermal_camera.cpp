@@ -20,7 +20,7 @@ extern Share<uint8_t> firePosH;
 extern Share<uint8_t> firePosV;
 
 //Constants
-uint8_t taskDelay = 5;
+uint8_t taskDelayTC = 5;
 
 /** @brief Task
 *   @details Task
@@ -45,7 +45,7 @@ void thermal_camera (void* p_params)
     int z = 0 ;
     int i = 0;
     int j = 0;
-    vTaskDelay(taskDelay);
+    vTaskDelay(taskDelayTC);
     while(true)
     {
         //State 1: Read Thermal Camera
@@ -79,8 +79,8 @@ void thermal_camera (void* p_params)
             firePresent.put(false);
             fireCentered.put(false);
         }
-        Serial << "ThermCam: " << z << endl;
-        vTaskDelay(taskDelay);    
+        //Serial.println("ThermCam: " + z);
+        vTaskDelay(taskDelayTC);    
     }
 }
 /*

@@ -16,11 +16,11 @@ extern Share<bool> bottomLimitSwitch;
 extern Share<bool> solenoidSwitched;
 
 //Constants
-const uint8_t taskDelay = 10;
+const uint8_t taskDelayPM = 20;
 const uint8_t PM1 = 12;
 const uint8_t PM2 = 13;
-const int PWM_CHANNEL1 = 0;
-const int PWM_CHANNEL2 = 1;
+const int PWM_CHANNEL1 = 2;
+const int PWM_CHANNEL2 = 3;
 const int PWM_FREQ = 1000;
 const int PWM_RESOLUTION = 8;
 const int MAX_DUTY_CYCLE = (int)(pow(2, PWM_RESOLUTION) - 1); 
@@ -47,7 +47,7 @@ void pitch_motor (void* p_params)
     //STOP motor
     ledcWrite(PWM_CHANNEL1, MAX_DUTY_CYCLE);
     ledcWrite(PWM_CHANNEL2, MAX_DUTY_CYCLE);
-    vTaskDelay(taskDelay);
+    vTaskDelay(taskDelayPM);
     while(true)
     {   
         if(stateVariable == 1)
@@ -59,7 +59,7 @@ void pitch_motor (void* p_params)
             topLimitSwitch.get(localTopLimitSwitch);
             if(!localTopLimitSwitch)
             {
-                ledcWrite(PWM_CHANNEL2, 13);
+                ledcWrite(PWM_CHANNEL2, 240);
             }
             else
             {
@@ -105,7 +105,7 @@ void pitch_motor (void* p_params)
         else if(stateVariable == 3)
         {
             //State 3: Arm moving down
-            ledcWrite(PWM_CHANNEL1, 13);
+            ledcWrite(PWM_CHANNEL1, 240);
             //Check limit switch
             bottomLimitSwitch.get(localBottomLimitSwitch);
             if(localBottomLimitSwitch == 1)
@@ -118,7 +118,7 @@ void pitch_motor (void* p_params)
         else if(stateVariable == 4)
         {
             //State 4: Arm moving up
-            ledcWrite(PWM_CHANNEL2, 13);
+            ledcWrite(PWM_CHANNEL2, 240);
             //Read limit switch
             topLimitSwitch.get(localTopLimitSwitch);
             if(localTopLimitSwitch)
@@ -128,7 +128,7 @@ void pitch_motor (void* p_params)
                 stateVariable = 2;
             }
         }
-        Serial << "PM: " << stateVariable << endl;
-        vTaskDelay(taskDelay);
+        //Serial.println("PM: " + stateVariable);
+        vTaskDelay(taskDelayPM);
     }
 }

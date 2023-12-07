@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
+#if 1 <0
 // #define USE_LAN to have the ESP32 join an existing Local Area Network or 
 // #undef USE_LAN to have the ESP32 act as an access point, forming its own LAN
 #undef USE_LAN
@@ -276,3 +277,4 @@ void loop ()
 {
     vTaskDelay (1000);
 }
+#endif

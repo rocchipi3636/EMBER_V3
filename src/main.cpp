@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <PrintStream.h>
 #include <taskshare.h>
+#include <shares.h>
 #include <task_data_upload.h>
 #include <task_limit_switch.h>
 #include <task_pitch_motor.h>
@@ -25,15 +26,15 @@ void setup (void)
   {}
   Serial.println("Serial Running");
   // Create data upload task
-  xTaskCreate (data_upload, "Data Upload", 1024, NULL, 5, NULL);
+  //xTaskCreate (data_upload, "Data Upload", 1024, NULL, 5, NULL);
   // Create the limit switch task
   xTaskCreate (limit_switch, "Limit Switch", 1024, NULL, 5, NULL);
   // Create the pitch motor task
   xTaskCreate (pitch_motor, "Pitch Motor", 1024, NULL, 5, NULL);
   // Create the solenoid task
-  xTaskCreate (solenoid, "Solenoid", 1024, NULL, 5, NULL);
+  xTaskCreate (solenoid, "Solenoid", 4096, NULL, 5, NULL);
   // Create the thermal camera task
-  xTaskCreate (thermal_camera, "Thermal Camera", 1024, NULL, 5, NULL);
+  xTaskCreate (thermal_camera, "Thermal Camera", 12288, NULL, 5, NULL);
   // Create the yaw motor task
   xTaskCreate (yaw_motor, "Yaw Motor", 1024, NULL, 5, NULL);
   Serial.println("Tasks Initialized");

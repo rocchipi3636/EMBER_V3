@@ -13,8 +13,8 @@
 extern Share<bool> solenoidSwitched;
 
 //Constants
-const uint8_t taskDelay = 10;
-const uint8_t solenoidPin = 23;
+const uint8_t taskDelayS = 15;
+const uint8_t solenoidPin = 25;
 
 /** @brief Task
 *   @details Task
@@ -28,7 +28,7 @@ void solenoid (void* p_params)
     bool localSolenoidSwitched = false;
     pinMode(solenoidPin, OUTPUT);
     Serial <<  "solenoid running";
-    vTaskDelay(taskDelay);
+    vTaskDelay(taskDelayS);
     while(true)
     {
         if(stateVariable == 1){
@@ -60,7 +60,8 @@ void solenoid (void* p_params)
             Serial << "Solenoid State Error";
             stateVariable = 1;
         }
-        Serial << "Solenoid:" << localSolenoidSwitched << " " << stateVariable << endl;
-        vTaskDelay(taskDelay);
+        //Serial.print("SOLENOID: " + stateVariable);
+        //Serial.println(" " + localSolenoidSwitched);
+        vTaskDelay(taskDelayS);
     }
 }
