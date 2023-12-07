@@ -13,7 +13,7 @@ extern Share<bool> topLimitSwitch;
 extern Share<bool> bottomLimitSwitch;
 
 //Constants
-const uint8_t taskDelay = 50;
+const uint8_t taskDelay = 15;
 //Define GPIO pins for switches
 const uint8_t pinTLSW = 25;
 const uint8_t pinBLSW = 26;
@@ -35,6 +35,7 @@ void limit_switch (void* p_params)
         //State 1: Read Limit Switches and set shared variables
         topLimitSwitch.put(digitalRead(pinTLSW));
         bottomLimitSwitch.put(digitalRead(pinBLSW));
+        Serial << "LSW:" << digitalRead(pinBLSW) << digitalRead(pinTLSW) << endl;
         vTaskDelay(taskDelay);
     }
 }

@@ -28,6 +28,7 @@ uint8_t taskDelay = 5;
 */
 void thermal_camera (void* p_params)
 {
+    //State 0: Initialize
     Adafruit_MLX90640 mlx;
     float frame[32*24]; // buffer for full frame of temperatures
     Serial <<  "thermal_camera running";
@@ -47,6 +48,7 @@ void thermal_camera (void* p_params)
     vTaskDelay(taskDelay);
     while(true)
     {
+        //State 1: Read Thermal Camera
         if (mlx.getFrame(frame) != 0)
         {
             Serial.println("Failed");
@@ -65,7 +67,7 @@ void thermal_camera (void* p_params)
                 }
             } 
         }
-        vTaskDelay(taskDelay);
+        
         if(z >= 30)
         {
             firePresent.put(true);
@@ -76,7 +78,9 @@ void thermal_camera (void* p_params)
         {
             firePresent.put(false);
             fireCentered.put(false);
-        }    
+        }
+        Serial << "ThermCam: " << z << endl;
+        vTaskDelay(taskDelay);    
     }
 }
 /*
