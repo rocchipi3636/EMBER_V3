@@ -128,7 +128,7 @@ void pitch_motor (void* p_params)
                 stateVariable = 2;
             }
         }
-        Serial << "PM: " << stateVariable << endl
+        Serial << "PM: " << stateVariable << endl;
         vTaskDelay(taskDelay);
     }
 }
