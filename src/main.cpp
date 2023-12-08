@@ -28,15 +28,15 @@ void setup (void)
   // Create data upload task
   //xTaskCreate (data_upload, "Data Upload", 1024, NULL, 5, NULL);
   // Create the limit switch task
-  xTaskCreate (limit_switch, "Limit Switch", 1024, NULL, 5, NULL);
+  xTaskCreate (limit_switch, "Limit Switch", 1024, NULL, 4, NULL);
   // Create the pitch motor task
   xTaskCreate (pitch_motor, "Pitch Motor", 1024, NULL, 5, NULL);
   // Create the solenoid task
-  xTaskCreate (solenoid, "Solenoid", 4096, NULL, 5, NULL);
+  xTaskCreate (solenoid, "Solenoid", 4096, NULL, 6, NULL);
   // Create the thermal camera task
-  xTaskCreate (thermal_camera, "Thermal Camera", 12288, NULL, 5, NULL);
+  xTaskCreate (thermal_camera, "Thermal Camera", 12288, NULL, 7, NULL);
   // Create the yaw motor task
-  xTaskCreate (yaw_motor, "Yaw Motor", 1024, NULL, 5, NULL);
+  xTaskCreate (yaw_motor, "Yaw Motor", 1024, NULL, 7, NULL);
   Serial.println("Tasks Initialized");
 }
 

@@ -11,8 +11,8 @@
 //Define Shared Variables
 //Details
 extern Share<bool> fireCentered;
-extern Share<bool> topLimitSwitch;
-extern Share<bool> bottomLimitSwitch;
+extern Share<uint8_t> topLimitSwitch;
+extern Share<uint8_t> bottomLimitSwitch;
 extern Share<bool> solenoidSwitched;
 
 //Constants
@@ -35,8 +35,8 @@ void pitch_motor (void* p_params)
     Serial <<  "pitch_motor running";
     uint8_t stateVariable = 1;
     bool localFireCentered = false;
-    bool localTopLimitSwitch = false;
-    bool localBottomLimitSwitch = false;
+    uint8_t localTopLimitSwitch = false;
+    uint8_t localBottomLimitSwitch = false;
     bool movingDown = true;
     u_int8_t dutyCyclePitch = 200;
     //Define PWM channels
@@ -57,7 +57,7 @@ void pitch_motor (void* p_params)
             solenoidSwitched.put(false);
             //Reset arm position to top
             topLimitSwitch.get(localTopLimitSwitch);
-            if(!localTopLimitSwitch)
+            if(localTopLimitSwitch != 1)
             {
                 ledcWrite(PWM_CHANNEL2, 240);
             }
@@ -105,7 +105,7 @@ void pitch_motor (void* p_params)
         else if(stateVariable == 3)
         {
             //State 3: Arm moving down
-            ledcWrite(PWM_CHANNEL1, 240);
+            ledcWrite(PWM_CHANNEL1, 245);
             //Check limit switch
             bottomLimitSwitch.get(localBottomLimitSwitch);
             if(localBottomLimitSwitch == 1)
@@ -121,7 +121,7 @@ void pitch_motor (void* p_params)
             ledcWrite(PWM_CHANNEL2, 240);
             //Read limit switch
             topLimitSwitch.get(localTopLimitSwitch);
-            if(localTopLimitSwitch)
+            if(localTopLimitSwitch == 1)
             {
                 //if the top limit switch is triggered change direction
                 movingDown = true;

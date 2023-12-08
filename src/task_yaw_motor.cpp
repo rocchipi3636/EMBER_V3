@@ -57,7 +57,7 @@ void yaw_motor (void* p_params)
             {
                 //No fire present
                 //Rotate slowly CCW
-                ledcWrite(PWM_CHANNELY2, 245);
+                ledcWrite(PWM_CHANNELY2, 239);
             }
             else
             {
@@ -79,7 +79,7 @@ void yaw_motor (void* p_params)
             //Get fire position
             firePosH.get(localFirePosH);
             //adjust motor speed based on fire position
-            dutyCycleYaw = 255-(int)(1.5*abs(localFirePosH));
+            dutyCycleYaw = 255-13*log10((1.2*abs(localFirePosH)));
             //move motor
             if(localFirePosH  > 2)
             {

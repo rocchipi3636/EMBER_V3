@@ -35,7 +35,10 @@ void thermal_camera (void* p_params)
     if (! mlx.begin(MLX90640_I2CADDR_DEFAULT, &Wire))
     {
         Serial.println("MLX90640 not found!");
-        while (1) delay(10);
+        while (1)
+        {
+            vTaskDelay(100);
+        }
     }
     Serial.println("Found Adafruit MLX90640");
     mlx.setMode(MLX90640_CHESS);

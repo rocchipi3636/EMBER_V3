@@ -9,8 +9,8 @@
 #include <taskshare.h>
 
 //Define Shared Variables
-extern Share<bool> topLimitSwitch;
-extern Share<bool> bottomLimitSwitch;
+extern Share<uint8_t> topLimitSwitch;
+extern Share<uint8_t> bottomLimitSwitch;
 
 //Constants
 const uint8_t taskDelayLSW = 15;
