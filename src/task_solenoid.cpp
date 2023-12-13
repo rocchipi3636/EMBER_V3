@@ -1,5 +1,5 @@
 /** @file task_solenoid.cpp
- *  This file contains the contents of task solenoid
+ *  This file contains the contents of task solenoid, a task that controls the operation of the solenoid
  */
 
 //includes
@@ -10,30 +10,33 @@
 
 //Define Shared Variables
 //Details
-extern Share<bool> solenoidSwitched;
+extern Share<bool> solenoidSwitched;        //INPUT
 
 //Constants
-const uint8_t taskDelayS = 15;
+const uint8_t taskDelayS = 10;
 const uint8_t solenoidPin = 25;
 
-/** @brief Task
-*   @details Task
+/** @brief Task solenoid controls the operation of the solenoid
+*   @details This task reads the shared variable solenoidSwitched to determine when the solenoid should be
+*           switched on or off.
 *   @param p_params Pointer is NULL
 */
 void solenoid (void* p_params)
 {
-    //State 0: Initialize
-    //Define dynamic variables
     uint8_t stateVariable = 1;
+    //State 0: Initialize
+    //Define local variables
     bool localSolenoidSwitched = false;
+    //Initialize Pin modes
     pinMode(solenoidPin, OUTPUT);
-    Serial <<  "solenoid running";
+    Serial <<  "solenoid running" << endl;
     vTaskDelay(taskDelayS);
     while(true)
     {
         if(stateVariable == 1){
             //State 1: Solenoid off
-            digitalWrite(solenoidPin, false);
+            //Turn solenoid off
+            digitalWrite(solenoidPin, LOW);
             //check if solenoid should be on;
             solenoidSwitched.get(localSolenoidSwitched);
             if(localSolenoidSwitched)
@@ -45,8 +48,9 @@ void solenoid (void* p_params)
         else if(stateVariable == 2)
         {
             //State 2: Solenoid on
-            digitalWrite(solenoidPin, true);
-            //check if solenoid should be off;
+            //Turn solenoid on
+            digitalWrite(solenoidPin, HIGH);
+            //check if solenoid should be off
             solenoidSwitched.get(localSolenoidSwitched);
             if(!localSolenoidSwitched)
             {
@@ -56,12 +60,11 @@ void solenoid (void* p_params)
         }
         else
         {
-            //Error state, return to state 1
+            //Error state
             Serial << "Solenoid State Error";
+            //return to state 1
             stateVariable = 1;
         }
-        //Serial.print("SOLENOID: " + stateVariable);
-        //Serial.println(" " + localSolenoidSwitched);
         vTaskDelay(taskDelayS);
     }
 }

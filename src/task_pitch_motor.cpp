@@ -1,5 +1,6 @@
 /** @file task_pitch_motor.cpp
- *  This file contains the contents of task pitch motor
+ *  This file contains the contents of task pitch motor, a task which controls the power delivered to
+ *  the pitch motor.
  */
 
 //includes
@@ -9,44 +10,53 @@
 #include <taskshare.h>
 
 //Define Shared Variables
-//Details
-extern Share<bool> fireCentered;
-extern Share<uint8_t> topLimitSwitch;
-extern Share<uint8_t> bottomLimitSwitch;
-extern Share<bool> solenoidSwitched;
+extern Share<bool> fireCentered;            //Input
+extern Share<uint8_t> topLimitSwitch;       //Input
+extern Share<uint8_t> bottomLimitSwitch;    //Input
+extern Share<bool> solenoidSwitched;        //Output
 
 //Constants
-const uint8_t taskDelayPM = 20;
+const uint8_t taskDelayPM = 8;
+//Motor pins
 const uint8_t PM1 = 12;
 const uint8_t PM2 = 13;
-const int PWM_CHANNEL1 = 2;
-const int PWM_CHANNEL2 = 3;
-const int PWM_FREQ = 1000;
-const int PWM_RESOLUTION = 8;
-const int MAX_DUTY_CYCLE = (int)(pow(2, PWM_RESOLUTION) - 1); 
+//PWM specifications
+const int PWM_CHANNELP1 = 2;
+const int PWM_CHANNELP2 = 3;
+const int PWM_FREQP = 1000;
+const int PWM_RESOLUTIONP = 8;
+const int MAX_DUTY_CYCLEP = (int)(pow(2, PWM_RESOLUTIONP) - 1); 
 
-/** @brief Task
-*   @details Task
+/** @brief Task pitch_motor controls the movement of the pitch motor
+*   @details This task controls the motor that adjusts the shooting arm pitch. While no fire is present, the pitch arm
+*           resets back to the up position. While a fire is present, the pitch motor moves up and down repeatedly
+*           within the bounds of the limit switch and signals the solenoid to turn on.
 *   @param p_params Pointer is NULL
 */
 void pitch_motor (void* p_params)
 {
-    //State 0: Initialize
-    Serial <<  "pitch_motor running";
+    //Define state variable
     uint8_t stateVariable = 1;
+    //State 0: Initialize
+    //Ensure solenoid is switched off during pitch motor initialization to prevent false positives
+    solenoidSwitched.put(false);
+    //Define local shared variables
     bool localFireCentered = false;
     uint8_t localTopLimitSwitch = false;
     uint8_t localBottomLimitSwitch = false;
+    //Define variable to track movement direction
     bool movingDown = true;
-    u_int8_t dutyCyclePitch = 200;
-    //Define PWM channels
-    ledcSetup(PWM_CHANNEL1, PWM_FREQ, PWM_RESOLUTION);
-    ledcSetup(PWM_CHANNEL2, PWM_FREQ, PWM_RESOLUTION);
-    ledcAttachPin(PM1, PWM_CHANNEL1);
-    ledcAttachPin(PM2, PWM_CHANNEL2);
+    //Define motor speed
+    uint8_t dutyCyclePitch = 245;
+    //Setup PWM channels
+    ledcSetup(PWM_CHANNELP1, PWM_FREQP, PWM_RESOLUTIONP);
+    ledcSetup(PWM_CHANNELP2, PWM_FREQP, PWM_RESOLUTIONP);
+    ledcAttachPin(PM1, PWM_CHANNELP1);
+    ledcAttachPin(PM2, PWM_CHANNELP2);
     //STOP motor
-    ledcWrite(PWM_CHANNEL1, MAX_DUTY_CYCLE);
-    ledcWrite(PWM_CHANNEL2, MAX_DUTY_CYCLE);
+    ledcWrite(PWM_CHANNELP1, MAX_DUTY_CYCLEP);
+    ledcWrite(PWM_CHANNELP2, MAX_DUTY_CYCLEP);
+    Serial <<  "pitch_motor running" << endl;
     vTaskDelay(taskDelayPM);
     while(true)
     {   
@@ -59,12 +69,13 @@ void pitch_motor (void* p_params)
             topLimitSwitch.get(localTopLimitSwitch);
             if(localTopLimitSwitch != 1)
             {
-                ledcWrite(PWM_CHANNEL2, 240);
+                ledcWrite(PWM_CHANNELP2, dutyCyclePitch);
             }
             else
             {
                 //When at top, stop moving and set direction of movement
-                ledcWrite(PWM_CHANNEL2, MAX_DUTY_CYCLE);
+                ledcWrite(PWM_CHANNELP1, MAX_DUTY_CYCLEP);
+                ledcWrite(PWM_CHANNELP2, MAX_DUTY_CYCLEP);
                 movingDown = true;
             }
             //Check if fire is centered (also imples present)   
@@ -81,10 +92,11 @@ void pitch_motor (void* p_params)
             //Ensure solenoid on
             solenoidSwitched.put(true);
             //Then stop motor to allow for a change of direction
-            ledcWrite(PWM_CHANNEL1, MAX_DUTY_CYCLE);
-            ledcWrite(PWM_CHANNEL2, MAX_DUTY_CYCLE);
-            //Check direction it should be moving and if fire is still present
+            ledcWrite(PWM_CHANNELP1, MAX_DUTY_CYCLEP);
+            ledcWrite(PWM_CHANNELP2, MAX_DUTY_CYCLEP);
+            //Check if fire is still present
             fireCentered.get(localFireCentered);
+            //Decided what direction to move next.
             if(!localFireCentered)
             {
                 //Fire is no longer present, move to state 1
@@ -92,12 +104,12 @@ void pitch_motor (void* p_params)
             }
             else if(movingDown)
             {
-                //if moving down move to state 3
+                //if fire present and moving down, move to state 3
                 stateVariable = 3;
             }
             else
             {
-                //if moving up move to state 4
+                //if fire present and moving up, move to state 4
                 stateVariable = 4;
             }
 
@@ -105,7 +117,8 @@ void pitch_motor (void* p_params)
         else if(stateVariable == 3)
         {
             //State 3: Arm moving down
-            ledcWrite(PWM_CHANNEL1, 245);
+            //Move arm downwards
+            ledcWrite(PWM_CHANNELP1, dutyCyclePitch);
             //Check limit switch
             bottomLimitSwitch.get(localBottomLimitSwitch);
             if(localBottomLimitSwitch == 1)
@@ -114,11 +127,18 @@ void pitch_motor (void* p_params)
                 movingDown = false;
                 stateVariable = 2;
             }
+            //Check if fire is still present
+            fireCentered.get(localFireCentered);
+            if(!localFireCentered)
+            {
+                //Fire is no longer present, override previous state change and move to state 1
+                stateVariable = 1;
+            }
         }
         else if(stateVariable == 4)
         {
             //State 4: Arm moving up
-            ledcWrite(PWM_CHANNEL2, 240);
+            ledcWrite(PWM_CHANNELP2, dutyCyclePitch);
             //Read limit switch
             topLimitSwitch.get(localTopLimitSwitch);
             if(localTopLimitSwitch == 1)
@@ -127,8 +147,21 @@ void pitch_motor (void* p_params)
                 movingDown = true;
                 stateVariable = 2;
             }
+            //Check if fire is still present
+            fireCentered.get(localFireCentered);
+            if(!localFireCentered)
+            {
+                //Fire is no longer present, override previous state change and move to state 1
+                stateVariable = 1;
+            }
         }
-        //Serial.println("PM: " + stateVariable);
+        else
+        {
+            //Error state
+            Serial << "Pitch Motor State Error" << endl;
+            //Reset back to state 1
+            stateVariable = 1;
+        }
         vTaskDelay(taskDelayPM);
     }
 }

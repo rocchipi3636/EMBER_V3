@@ -1,9 +1,8 @@
 /** @file task_thermal_camera.cpp
- *  This file contains the contents of task thermal_camera
+ *  This file contains the contents of task thermal_camera which reads and interprets data from the thermal camera
  */
 
 //includes
-
 #include <task_thermal_camera.h>
 #include <PrintStream.h>
 #include <taskshare.h>
@@ -12,98 +11,109 @@
 #include <SPI.h>
 
 //Define Shared Variables
-//Details
-
-extern Share<bool> firePresent;
-extern Share<bool> fireCentered;
-extern Share<uint8_t> firePosH;
-extern Share<uint8_t> firePosV;
+extern Share<bool> firePresent;         //Ouput
+extern Share<bool> fireCentered;        //Output
+extern Share<int8_t> firePosH;         //Output
+extern Share<int8_t> firePosV;         //Output
+extern Share<float*> printedFrame;      //Output
+extern Share<uint16_t> highestTemp;     //Output
+extern Share<bool> cameraConnected;     //Output
 
 //Constants
-uint8_t taskDelayTC = 5;
+uint8_t taskDelayTC = 16;
 
-/** @brief Task
-*   @details Task
+/** @brief Task thermal_camera reads and interprets data from the thermal camera
+*   @details This task reads data from the thermal camera and determines a few things. If a fire is present, it sets
+*           the shared variable "firePresent" true and additionally stores the pixel of highest intensity in "firePosH",
+*           "firePosY", and "highestTemp". If a fire is not present, it sets "firePresent" and "fireCentered" false. Additionally
+*           it always updates "printedFrame" and "cameraConnected" for the purposes of the webserver.
 *   @param p_params Pointer is NULL
 */
 void thermal_camera (void* p_params)
 {
     //State 0: Initialize
+    //Ensure that the fire variables and camera are initilially false to prevent false positives
+    //before the camera is connected
+    firePresent.put(false);
+    fireCentered.put(false);
+    cameraConnected.put(false);
+    //Initialize thermal camera
     Adafruit_MLX90640 mlx;
-    float frame[32*24]; // buffer for full frame of temperatures
-    Serial <<  "thermal_camera running";
+    //buffer for full frame of temperatures
+    float frame[32*24];
+    // initliaze variables to record hottest pixel intensity and location
+    int16_t currentHighTemp = 0 ;
+    int8_t highTempX = 0;
+    int8_t highTempY = 0;
+    //If camera does not connect, halt camera task
     if (! mlx.begin(MLX90640_I2CADDR_DEFAULT, &Wire))
     {
         Serial.println("MLX90640 not found!");
         while (1)
         {
+            //Put false into shared variable camera connected to alert other tasks of failed connection
+            cameraConnected.put(false);
             vTaskDelay(100);
         }
     }
+    //If camera does connect, put true to alert tasks of appropriate operation
+    cameraConnected.put(true);
     Serial.println("Found Adafruit MLX90640");
+    //Setting up camera settings
+    //Output type matrix
     mlx.setMode(MLX90640_CHESS);
+    //Output resolution
     mlx.setResolution(MLX90640_ADC_18BIT);
-    mlx.setRefreshRate(MLX90640_2_HZ);
-    delay(2000);
-    int z = 0 ;
-    int i = 0;
-    int j = 0;
+    //Refresh rate, in a task 4 HZ seems to be the limit, pretty abysmal :(
+    mlx.setRefreshRate(MLX90640_4_HZ);
+    //Delay to allow the settings to take effect
+    vTaskDelay(1000);
+    Serial <<  "thermal_camera running" << endl;
     vTaskDelay(taskDelayTC);
     while(true)
     {
-        //State 1: Read Thermal Camera
+        //State 1: Read Thermal Camera Continuously
         if (mlx.getFrame(frame) != 0)
         {
             Serial.println("Failed");
             return;
         }
-        for (uint8_t h=0; h<24; h++)
+        //Retrieve image from camera
+        printedFrame.put(frame);
+        //Iterate through results to find hottest pixel
+        for (uint8_t height=0; height<24; height++)
         {
-            for (uint8_t w=0; w<32; w++)
+            for (uint8_t width=0; width<32; width++)
             {
-                int t = frame[h*32 + w];
-                if (t >= z)
+                int currentPixelIntensity = frame[height*32 + width];
+                //Check if current pixel is hottest
+                if (currentPixelIntensity >= currentHighTemp)
                 {
-                    z=t; 
-                    i=h;
-                    j=w;
+                    //If hottest, set variables
+                    currentHighTemp=currentPixelIntensity;    //Intensity
+                    highTempX=width-16;    //x location centered
+                    highTempY=height;    //y location
                 }
             } 
         }
-        
-        if(z >= 30)
+        //Check for fire based on temperature
+        if(currentHighTemp >= 80)
         {
+            //If fire, set true and set location
             firePresent.put(true);
-            firePosH.put(j-12);
-            firePosV.put(j);
+            firePosH.put(highTempX);
+            firePosV.put(highTempY);
+            //Reset temp reading
+            currentHighTemp=0;
         }
         else
         {
+            //If no fire, set false
             firePresent.put(false);
             fireCentered.put(false);
+            //reset temp Reading
+            currentHighTemp=0;
         }
-        //Serial.println("ThermCam: " + z);
-        vTaskDelay(taskDelayTC);    
+        vTaskDelay(taskDelayTC);
     }
 }
-/*
-      char c = '&';
-      if (t < 20) c = ' ';
-      else if (t < 23) c = '.';
-      else if (t < 25) c = '-';
-      else if (t < 27) c = '*';
-      else if (t < 29) c = '+';
-      else if (t < 31) c = 'x';
-      else if (t < 33) c = '%';
-      else if (t < 35) c = '#';
-      else if (t < 37) c = 'X';
-      else if (t < 40) c = '1';
-      else if (t < 50) c = '2';
-      else if (t < 60) c = '3';
-      else if (t < 70) c = '4';
-      else if (t < 80) c = '5';
-      else if (t < 90) c = '6';
-      else if (t < 100) c = '7';
-      else if (t < 120) c = '8';
-      else if (t < 200 ) c = '9';
-*/

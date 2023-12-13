@@ -13,8 +13,8 @@
 //Fire Present, used by thermal camera, data upload, pitch motor, and yaw motor
 Share<bool> firePresent;
 //Fire position horizontal and vertical, used by thermal camera, data upload, pitch motor, and yaw motor
-Share<uint8_t> firePosH;
-Share<uint8_t> firePosV;
+Share<int8_t> firePosH;
+Share<int8_t> firePosV;
 //Fire is centered, used by yaw motor and pitch motor
 Share<bool> fireCentered;
 //Limit Switch States, used by pitch motor and limit switch
@@ -22,6 +22,8 @@ Share<uint8_t> topLimitSwitch;
 Share<uint8_t> bottomLimitSwitch;
 //Solenoid state, used by pitch motor and solenoid
 Share<bool> solenoidSwitched;
-
-
+//Shared Variables for Webserver to display
+Share<float*> printedFrame;
+Share<uint16_t> highestTemp;
+Share<bool> cameraConnected;
 #endif // _SHARES_
