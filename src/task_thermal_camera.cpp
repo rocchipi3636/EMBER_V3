@@ -13,10 +13,11 @@
 //Define Shared Variables
 extern Share<bool> firePresent;         //Ouput
 extern Share<bool> fireCentered;        //Output
-extern Share<int8_t> firePosH;         //Output
-extern Share<int8_t> firePosV;         //Output
-extern Share<float*> printedFrame;      //Output
+extern Share<int8_t> firePosH;          //Output
+extern Share<int8_t> firePosV;          //Output      
 extern Share<uint16_t> highestTemp;     //Output
+extern Share<float> globalThermalFrame;
+extern Share<bool> newDataAvailable;
 extern Share<bool> cameraConnected;     //Output
 
 //Constants
@@ -79,7 +80,7 @@ void thermal_camera (void* p_params)
             return;
         }
         //Retrieve image from camera
-        printedFrame.put(frame);
+        globalThermalFrame.put(*frame);
         //Iterate through results to find hottest pixel
         for (uint8_t height=0; height<24; height++)
         {

@@ -78,7 +78,7 @@ void pitch_motor (void* p_params)
                 ledcWrite(PWM_CHANNELP2, MAX_DUTY_CYCLEP);
                 movingDown = true;
             }
-            //Check if fire is centered (also imples present)   
+            //Check if fire is centered (also implies present)   
             fireCentered.get(localFireCentered);
             if(localFireCentered)
             {

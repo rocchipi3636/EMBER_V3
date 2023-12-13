@@ -127,7 +127,7 @@ void yaw_motor (void* p_params)
                 Serial.println("Fire Centered");
                 //Motors stay stopped from previous state
             }
-            else
+            if(!localFirePresent)
             {
                 //No fire is present, return to state 2 to wait for fire
                 stateVariableYaw = 2;

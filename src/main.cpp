@@ -18,10 +18,9 @@
 #include <task_yaw_motor.h>
 
 //Define Shared Variables
-extern Share<float*> printedFrame;      //Input
+extern Share<float> globalThermalFrame[768];      //Input
 extern Share<uint16_t> highestTemp;     //Input
 
-/*
 const char* ssid = "ESP32";  // Enter SSID here
 const char* password = "12345678";  //Enter Password here
 
@@ -55,13 +54,30 @@ void handle_NotFound(){
 
 void task_webserver (void* p)
 {
+  float localThermalFrame = 0;
   while(1)
   {
-    server.handleClient ();
-    vTaskDelay (500);
+    globalThermalFrame.get(localThermalFrame);
+    WiFiClient client = server.available(); // Listen for incoming clients
+        if (client) {
+
+        // Print the shared array in a basic format
+        client.println("<html><body><h1>Shared Array Data</h1>");
+        client.println("<p>");
+
+        for (int i = 0; i < 768; ++i) {
+            client.print("Value ");
+            client.print(i);
+            client.print(": ");
+            client.print((localThermalFrame+i));
+            client.println("<br>");
+        }
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to prevent task from using 100% CPU
+    }
+   
   }
 }
-*/
+
 /** @brief   Task which sets up and runs a web server.
  *  @details After setup, function @c handleClient() must be run periodically
  *           to check for page requests from web clients. One could run this

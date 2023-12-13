@@ -23,7 +23,8 @@ Share<uint8_t> bottomLimitSwitch;
 //Solenoid state, used by pitch motor and solenoid
 Share<bool> solenoidSwitched;
 //Shared Variables for Webserver to display
-Share<float*> printedFrame;
+Share<float> globalThermalFrame[768];
+Share<float> upload_frame[768];
 Share<uint16_t> highestTemp;
 Share<bool> cameraConnected;
 #endif // _SHARES_
